@@ -63,7 +63,28 @@ jobs:
         run: |
             az vm create \
               --resource-group ${RESOURCE_GROUP} \
-              --name vm-test \
+              --name vm-test-1 \
+              --location ${LOCATION} \
+              --size Standard_D2s_v3 \
+              --image Ubuntu2204 \
+              --capacity-reservation-group "$CRG_ID" \
+              --zone 1 \
+              --generate-ssh-keys 
+
+            az vm create \
+              --resource-group ${RESOURCE_GROUP} \
+              --name vm-test-2 \
+              --location ${LOCATION} \
+              --size Standard_D2s_v3 \
+              --image Ubuntu2204 \
+              --capacity-reservation-group "$CRG_ID" \
+              --zone 1 \
+              --generate-ssh-keys 
+
+            # testing over-provisioning since we have 2 capacity reserved
+            az vm create \
+              --resource-group ${RESOURCE_GROUP} \
+              --name vm-test-3 \
               --location ${LOCATION} \
               --size Standard_D2s_v3 \
               --image Ubuntu2204 \

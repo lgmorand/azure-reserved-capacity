@@ -1,0 +1,136 @@
+name: General - Deploy demo
+
+on:
+  workflow_dispatch:
+    inputs:
+        REGION:
+          description: 'Location' 
+          required: true
+          type: string
+          default: 'northeurope'
+        RESOURCE_GROUP:
+          description: 'Resource Group' 
+          required: true
+          type: string
+          default: 'rg-demo-reserved-capacity'
+        DESTROY_DELAY_SECONDS:
+          description: 'Delay before destroying the RC (in seconds, max 20000, 0 to disable)' 
+          type: integer
+          required: true
+          default: '900'
+jobs:
+ Deploy:
+    name: 'Deploys a demo env with RC'
+    runs-on: ubuntu-latest
+    env:
+      RESOURCE_GROUP: ${{ github.event.inputs.RESOURCE_GROUP }}
+      LOCATION: ${{ github.event.inputs.REGION }}
+      RCG_NAME: rcg-demo
+
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: AZ Login
+        run: az login --service-principal -u ${{ vars.AZ_LOGIN }} -p ${{ secrets.AZ_PASSWORD }} --tenant ${{ vars.AZ_TENANT }}
+        
+      - name: Create RG
+        run: az group create -n ${RESOURCE_GROUP} -l ${LOCATION}
+      
+      - name: Create RCG
+        run: |
+          az capacity reservation group create \
+            -g ${RESOURCE_GROUP} \
+            -n ${RCG_NAME} \
+            -l ${LOCATION} \
+            --zones 1 2 3
+
+          CRG_ID=$(az capacity reservation group show -g ${RESOURCE_GROUP} -n ${RCG_NAME} --query id -o tsv)
+          echo "CRG_ID=$CRG_ID" >> $GITHUB_ENV
+          echo "CRG_ID=$CRG_ID"
+      
+      - name: Create Capacity Reservation
+        run: |
+          az capacity reservation create \
+            --resource-group ${RESOURCE_GROUP} \
+            --capacity-reservation-group ${RCG_NAME} \
+            --name cr-test \
+            --location ${LOCATION} \
+            --sku Standard_D2s_v3 \
+            --capacity 2 \
+            --zone 1
+
+      - name: Create VM with capacity associated
+        run: |
+            az vm create \
+              --resource-group ${RESOURCE_GROUP} \
+              --name vm-test-1 \
+              --location ${LOCATION} \
+              --size Standard_D2s_v3 \
+              --image Ubuntu2204 \
+              --capacity-reservation-group "$CRG_ID" \
+              --zone 1 \
+              --generate-ssh-keys 
+
+            az vm create \
+              --resource-group ${RESOURCE_GROUP} \
+              --name vm-test-2 \
+              --location ${LOCATION} \
+              --size Standard_D2s_v3 \
+              --image Ubuntu2204 \
+              --capacity-reservation-group "$CRG_ID" \
+              --zone 1 \
+              --generate-ssh-keys 
+
+            # testing over-provisioning since we have 2 capacity reserved
+            az vm create \
+              --resource-group ${RESOURCE_GROUP} \
+              --name vm-test-3 \
+              --location ${LOCATION} \
+              --size Standard_D2s_v3 \
+              --image Ubuntu2204 \
+              --capacity-reservation-group "$CRG_ID" \
+              --zone 1 \
+              --generate-ssh-keys 
+
+ Destroy:
+    name: 'Destroy the demo env'
+    runs-on: ubuntu-latest
+    needs: Deploy
+    env:
+      RESOURCE_GROUP: ${{ github.event.inputs.RESOURCE_GROUP }}
+      DESTROY_DELAY_SECONDS: ${{ github.event.inputs.DESTROY_DELAY_SECONDS }}
+
+    steps:
+      - name: Wait before destroy
+        run: |
+
+          echo "Destroy delay seconds: $DESTROY_DELAY_SECONDS"
+
+          if [ "$DESTROY_DELAY_SECONDS" -gt 0 ]; then
+            TOTAL_SECONDS=$((DESTROY_DELAY_SECONDS))
+            REMAINING=$TOTAL_SECONDS
+            
+            echo "Starting countdown: $DESTROY_DELAY_SECONDS seconds before destroying the resource group..."
+            
+            while [ $REMAINING -gt 0 ]; do
+              HOURS=$((REMAINING / 3600))
+              MINUTES=$(((REMAINING % 3600) / 60))
+              SECONDS=$((REMAINING % 60))
+              
+              echo "Time remaining: ${HOURS}h ${MINUTES}m ${SECONDS}s ($REMAINING seconds)"
+              
+              if [ $REMAINING -le 30 ]; then
+                sleep $REMAINING
+                REMAINING=0
+              else
+                sleep 30
+                REMAINING=$((REMAINING - 30))
+              fi
+            done
+            
+            echo "Countdown complete. Destroying the resource group..."
+            az login --service-principal -u ${{ vars.AZ_LOGIN }} -p ${{ secrets.AZ_PASSWORD }} --tenant ${{ vars.AZ_TENANT }}
+            az group delete -n ${RESOURCE_GROUP} --yes --no-wait
+          else
+            echo "No destruction delay set. Skipping."
+          fi

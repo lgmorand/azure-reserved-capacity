@@ -1,0 +1,137 @@
+name: Test Azure Reserved Capacity
+
+on:
+  workflow_dispatch:
+    inputs:
+      subscription_id:
+        description: 'Azure Subscription ID'
+        required: true
+        type: string
+      resource_group_name:
+        description: 'Resource Group Name'
+        required: true
+        type: string
+        default: 'rg-reserved-capacity-test'
+      reserved_capacity_group_name:
+        description: 'Reserved Capacity Group Name'
+        required: true
+        type: string
+        default: 'rcg-test'
+      location:
+        description: 'Azure Region'
+        required: true
+        type: choice
+        options:
+          - 'East US'
+          - 'West US 2'
+          - 'Central US'
+          - 'North Europe'
+          - 'West Europe'
+          - 'France Central'
+        default: 'France Central'
+      capacity_amount:
+        description: 'Capacity Amount'
+        required: true
+        type: number
+        default: 1
+      sku:
+        description: 'VM SKU for Reserved Capacity'
+        required: true
+        type: choice
+        options:
+          - 'Standard_D2s_v3'
+          - 'Standard_D4s_v3'
+          - 'Standard_D8s_v3'
+          - 'Standard_D16s_v3'
+          - 'Standard_D2s_v5'
+          - 'Standard_D4s_v5'
+          - 'Standard_D8s_v5'
+          - 'Standard_E2s_v3'
+          - 'Standard_E4s_v3'
+          - 'Standard_E8s_v3'
+          - 'Standard_F2s_v2'
+          - 'Standard_F4s_v2'
+          - 'Standard_F8s_v2'
+        default: 'Standard_D2s_v3'
+      sleep_seconds:
+        description: 'Sleep seconds between retries'
+        required: false
+        type: number
+        default: 3600
+      dry_run:
+        description: 'Dry Run (validate only, do not create resources)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  test-reserved-capacity:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Azure Login
+      run: az login --service-principal -u ${{ vars.AZ_LOGIN }} -p ${{ secrets.AZ_PASSWORD }} --tenant ${{ vars.AZ_TENANT }}
+    
+    - name: Display Test Parameters
+      run: |
+        echo "🧪 Testing Azure Reserved Capacity with the following parameters:"
+        echo "📋 Subscription ID: ${{ github.event.inputs.subscription_id }}"
+        echo "📦 Resource Group: ${{ github.event.inputs.resource_group_name }}"
+        echo "🏷️ Reserved Capacity Group: ${{ github.event.inputs.reserved_capacity_group_name }}"
+        echo "📍 Location: ${{ github.event.inputs.location }}"
+        echo "📊 Capacity Amount: ${{ github.event.inputs.capacity_amount }}"
+        echo "🖥️ SKU: ${{ github.event.inputs.sku }}"
+        echo "⏱️ Sleep Seconds: ${{ github.event.inputs.sleep_seconds }}"
+        echo "🔍 Dry Run: ${{ github.event.inputs.dry_run }}"
+    
+    - name: Validate Azure Subscription
+      run: |
+        echo "🔍 Validating Azure subscription access..."
+        az account show --subscription ${{ github.event.inputs.subscription_id }}
+        echo "✅ Subscription validation successful"
+    
+    - name: Check Resource Group
+      run: |
+        echo "🔍 Checking if resource group exists..."
+        if az group show --name ${{ github.event.inputs.resource_group_name }} --subscription ${{ github.event.inputs.subscription_id }} > /dev/null 2>&1; then
+          echo "✅ Resource group '${{ github.event.inputs.resource_group_name }}' exists"
+        else
+          echo "❌ Resource group '${{ github.event.inputs.resource_group_name }}' does not exist"
+          if [ "${{ github.event.inputs.dry_run }}" = "false" ]; then
+            echo "🔧 Creating resource group..."
+            az group create --name ${{ github.event.inputs.resource_group_name }} --location "${{ github.event.inputs.location }}" --subscription ${{ github.event.inputs.subscription_id }}
+            echo "✅ Resource group created"
+          fi
+        fi
+    
+    - name: Test Reserved Capacity Script (Dry Run)
+      if: ${{ github.event.inputs.dry_run == 'true' }}
+      run: |
+        echo "🔍 Running in DRY RUN mode - validating script execution"
+        chmod +x ./src/script.sh
+        ./src/script.sh \
+          --subscription-id "${{ github.event.inputs.subscription_id }}" \
+          --resource-group "${{ github.event.inputs.resource_group_name }}" \
+          --rcg-name "${{ github.event.inputs.reserved_capacity_group_name }}" \
+          --location "${{ github.event.inputs.location }}" \
+          --capacity "${{ github.event.inputs.capacity_amount }}" \
+          --sku "${{ github.event.inputs.sku }}" \
+          --sleep-seconds "${{ github.event.inputs.sleep_seconds }}" \
+          --dry-run
+    
+    - name: Create Reserved Capacity (Live Run)
+      if: ${{ github.event.inputs.dry_run == 'false' }}
+      run: |
+        echo "⚠️ LIVE RUN - Creating actual Azure resources!"
+        chmod +x ./src/script.sh
+        ./src/script.sh \
+          --subscription-id "${{ github.event.inputs.subscription_id }}" \
+          --resource-group "${{ github.event.inputs.resource_group_name }}" \
+          --rcg-name "${{ github.event.inputs.reserved_capacity_group_name }}" \
+          --location "${{ github.event.inputs.location }}" \
+          --capacity "${{ github.event.inputs.capacity_amount }}" \
+          --sku "${{ github.event.inputs.sku }}" \
+          --sleep-seconds "${{ github.event.inputs.sleep_seconds }}"

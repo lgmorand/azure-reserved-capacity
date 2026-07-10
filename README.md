@@ -17,6 +17,20 @@ By using this repository, you acknowledge and accept these limitations.
 
 A repository for testing and managing Azure Reserved Capacity implementations.
 
+## 🌐 Website & FAQ
+
+A small website is published from this repo via GitHub Pages. It showcases the technical
+**[FAQ](site/FAQ.md)**, the automation script, the slides (added later) and the workflows.
+
+- **Live site**: `https://lgmorand.github.io/azure-reserved-capacity/`
+- **FAQ (Markdown)**: [`site/FAQ.md`](site/FAQ.md) — attach/detach VMs, share a Capacity
+  Reservation Group across subscriptions, and the exact RBAC permissions required to link a
+  resource to a CRG.
+
+> **Enabling Pages (one-time):** In **Settings → Pages**, set **Source** to **GitHub Actions**.
+> The [`pages.yml`](.github/workflows/pages.yml) workflow then publishes the `site/` folder on
+> every push to `main`.
+
 ## Overview
 
 This project provides automated tools to help manage Azure Reserved Capacity, allowing you to optimize costs by reserving Azure compute resources in advance.

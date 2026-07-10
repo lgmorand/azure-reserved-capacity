@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — Azure Reserved Capacity</title>
+  <meta name="description" content="Technical FAQ about Azure On-Demand Capacity Reservation: attach, detach, share across subscriptions, RBAC permissions." />
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <!-- Syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.png" alt="Azure Reserved Capacity logo" />
+        <span>Azure Reserved Capacity</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="faq.html">FAQ</a>
+        <a href="script.sh">Script</a>
+        <a href="https://github.com/lgmorand/azure-reserved-capacity">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="doc">
+    <div class="container doc-wrap">
+      <aside class="toc" id="toc">
+        <h4>On this page</h4>
+        <div id="toc-links"></div>
+      </aside>
+      <article class="markdown" id="content">
+        <p class="loading">Loading FAQ…</p>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      Source: <a href="FAQ.md">FAQ.md</a> ·
+      <a href="https://github.com/lgmorand/azure-reserved-capacity">lgmorand/azure-reserved-capacity</a>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    const slug = (s) => s.toLowerCase().trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-');
+
+    async function render() {
+      const content = document.getElementById('content');
+      try {
+        const res = await fetch('FAQ.md', { cache: 'no-cache' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const md = await res.text();
+
+        marked.setOptions({ gfm: true, breaks: false });
+        content.innerHTML = marked.parse(md);
+
+        // Add ids + build TOC
+        const tocLinks = document.getElementById('toc-links');
+        const used = {};
+        content.querySelectorAll('h2, h3').forEach((h) => {
+          let id = slug(h.textContent);
+          if (used[id]) { id = id + '-' + (++used[id]); } else { used[id] = 1; }
+          h.id = id;
+          const a = document.createElement('a');
+          a.href = '#' + id;
+          a.textContent = h.textContent;
+          a.className = h.tagName === 'H3' ? 'lvl-3' : 'lvl-2';
+          tocLinks.appendChild(a);
+        });
+
+        // Highlight code blocks
+        if (window.hljs) {
+          content.querySelectorAll('pre code').forEach((b) => hljs.highlightElement(b));
+        }
+
+        // Jump to hash if present
+        if (location.hash) {
+          const el = document.getElementById(location.hash.slice(1));
+          if (el) el.scrollIntoView();
+        }
+      } catch (err) {
+        content.innerHTML =
+          '<h1>Could not load the FAQ</h1><p>' + err.message +
+          '</p><p>You can read it directly here: <a href="FAQ.md">FAQ.md</a>.</p>';
+      }
+    }
+    render();
+  </script>
+</body>
+</html>

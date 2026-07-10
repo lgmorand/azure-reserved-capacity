@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Reserved Capacity</title>
+  <meta name="description" content="Guarantee Azure compute capacity with On-Demand Capacity Reservations — FAQ, scripts, slides and automation." />
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.png" alt="Azure Reserved Capacity logo" />
+        <span>Azure Reserved Capacity</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#resources">Resources</a>
+        <a href="faq.html">FAQ</a>
+        <a href="script.sh">Script</a>
+        <a href="https://github.com/lgmorand/azure-reserved-capacity">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="badge">Azure · On-Demand Capacity Reservation</span>
+        <h1>Guarantee your Azure <span class="grad">compute capacity</span></h1>
+        <p class="lead">
+          Everything you need to reserve, attach, detach and share Azure compute capacity —
+          a complete technical FAQ, an automation script, and ready-to-run GitHub workflows.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="faq.html">📖 Read the FAQ</a>
+          <a class="btn btn-ghost" href="https://github.com/lgmorand/azure-reserved-capacity">⭐ View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="resources">
+      <div class="container">
+        <h2>Resources</h2>
+        <p class="sub">Learn the concepts, then grab the tooling.</p>
+
+        <div class="grid">
+          <a class="card" href="faq.html">
+            <div class="ico">📖</div>
+            <h3>Technical FAQ</h3>
+            <p>Attach &amp; detach VMs, share a group across subscriptions, and the exact RBAC permissions needed to link a resource to a Capacity Reservation Group.</p>
+            <span class="card-link">Open the FAQ →</span>
+          </a>
+
+          <div class="card disabled">
+            <div class="ico">📊</div>
+            <h3>Slides <span class="pill">soon</span></h3>
+            <p>The presentation deck (PowerPoint) walking through Azure Capacity Reservation concepts and demos. Coming shortly.</p>
+            <span class="card-link">Download slides →</span>
+          </div>
+
+          <a class="card" href="script.sh">
+            <div class="ico">🔧</div>
+            <h3>Automation script</h3>
+            <p><code>script.sh</code> incrementally creates a reservation group and grows capacity one unit at a time, retrying on transient allocation failures.</p>
+            <span class="card-link">Get the script →</span>
+          </a>
+
+          <a class="card" href="https://github.com/lgmorand/azure-reserved-capacity/tree/main/.github/workflows">
+            <div class="ico">🚀</div>
+            <h3>GitHub workflows</h3>
+            <p>Two ready-to-use Actions: a safe dry-run <em>test</em> workflow and a full <em>deploy demo</em> that provisions VMs against the reservation.</p>
+            <span class="card-link">Browse workflows →</span>
+          </a>
+        </div>
+
+        <div class="warn">
+          ⚠️ <strong>Demo repository.</strong> Educational purposes only — no support, no warranty,
+          not production ready. Always validate in a non-production subscription.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      Built from <a href="https://github.com/lgmorand/azure-reserved-capacity">lgmorand/azure-reserved-capacity</a>
+      · Published with GitHub Pages
+    </div>
+  </footer>
+</body>
+</html>

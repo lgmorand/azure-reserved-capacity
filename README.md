@@ -22,7 +22,7 @@ A repository for testing and managing Azure Reserved Capacity implementations.
 A small website is published from this repo via GitHub Pages. It showcases the technical
 **[FAQ](site/FAQ.md)**, the automation script, the slides (added later) and the workflows.
 
-- **Live site**: `https://lgmorand.github.io/azure-reserved-capacity/`
+- **Live site**: https://lgmorand.github.io/azure-reserved-capacity/
 - **FAQ (Markdown)**: [`site/FAQ.md`](site/FAQ.md) — attach/detach VMs, share a Capacity
   Reservation Group across subscriptions, and the exact RBAC permissions required to link a
   resource to a CRG.

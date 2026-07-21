@@ -33,7 +33,9 @@ A small website is published from this repo via GitHub Pages. It showcases the t
 
 ## Overview
 
-This project provides automated tools to help manage Azure Reserved Capacity, allowing you to optimize costs by reserving Azure compute resources in advance.
+This project provides a [script](src/script.sh) for automated [Azure On-Demand Capacity Reservation](https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview). It incrementally creates Capacity Reservation Groups (CRG) and Capacity Reservations (CR) - with automatic retry logic - so you can guarantee compute capacity for a specific VM SKU in a specific region and availability zone, even when that capacity is constrained.
+
+Capacity Reservations reserve compute for you the moment they're created, ensuring your VMs can deploy when you need them (DR failover, planned scale-out, or capacity-tight regions). They can be combined with Reserved Instances or a Savings Plan if you also want the associated pricing discount.
 
 ## What's Included
 
